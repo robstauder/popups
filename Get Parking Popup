@@ -1,0 +1,37 @@
+var feature_type = $feature.UPDP_Function
+if (feature_type != "Parking") {
+  return $feature.ParkingCounts
+}
+var option_name = $feature.Option_Name;
+if (IsEmpty(option_name)) {
+  return $feature.ParkingCounts
+}
+// fetch start_date from options_config
+var the_portal = Portal('https://universityofutah.maps.arcgis.com/');
+var config_fs = FeatureSetByPortalItem(the_portal, '2255201c17c544e4be433febe77184d5',0, ['configuration_name','configuration_value','configuration_sublayer_id','start_date'],false); 
+var filter_fs = Filter(config_fs, "configuration_name = @option_name and configuration_type = 'Option'")
+var start_date;
+for (var config_row in filter_fs) {
+  start_date = config_row['start_date']
+}
+if ($feature.EditDate > start_date) {
+  // calculate parking
+  var num_floors = $feature.Floors;
+  var geodetic_area = AreaGeodetic($feature, "square-feet");
+  if (!IsEmpty(num_floors) && num_floors > 0) {    
+    return Round(num_floors * (geodetic_area / 350), 0);
+  }
+  else {
+    var height = $feature.Height_Feet;
+    if (!IsEmpty(height) && height > 0) {
+      num_floors = height / 12
+      return Round(num_floors * (geodetic_area / 350), 0);
+    }
+    else {
+      return 0
+    }
+  }
+}
+return $feature.ParkingCounts
+
+
