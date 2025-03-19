@@ -1,0 +1,31 @@
+var gsf = $feature.GSF;
+var option_name = $feature.Option_Name
+// fetch start_date from options_config
+var the_portal = Portal('https://universityofutah.maps.arcgis.com/');
+var config_fs = FeatureSetByPortalItem(the_portal, '2255201c17c544e4be433febe77184d5',0, ['configuration_name','configuration_value','configuration_sublayer_id','start_date'],false); 
+var filter_fs = Filter(config_fs, "configuration_name = @option_name and configuration_type = 'Option'")
+var start_date;
+for (var config_row in filter_fs) {
+  start_date = config_row['start_date']
+}
+if ($feature.EditDate > start_date) {
+  var num_floors = $feature.Floors 
+  var height = $feature.Height_Feet
+  if (!IsEmpty(num_floors)) {
+    return Round(num_floors * AreaGeodetic($feature, 'square-feet'), 0)
+  }
+  else if (!IsEmpty(height) && height > 0) {
+    num_floors = height / 12;
+    if (num_floors >= 1) {
+      return Round (num_floors * AreaGeodetic($feature, 'square-feet'), 0)
+    }
+    else {
+      return Round(AreaGeodetic($feature, 'square-feet'),0)
+    }
+  }
+  else {
+    return gsf
+  }
+}
+// if we get here, just return the gsf value from line 1
+return gsf
