@@ -1,0 +1,24 @@
+var option_name = $feature.Option_Name
+// fetch start_date from options_config
+var the_portal = Portal('https://universityofutah.maps.arcgis.com/');
+var config_fs = FeatureSetByPortalItem(the_portal, '2255201c17c544e4be433febe77184d5',0, ['configuration_name','configuration_value','configuration_sublayer_id','start_date'],false); 
+var filter_fs = Filter(config_fs, "configuration_name = @option_name and configuration_type = 'Option'")
+var start_date;
+for (var config_row in filter_fs) {
+  start_date = config_row['start_date']
+}
+if ($feature.EditDate > start_date) {
+  if (IsEmpty($feature.Height_Feet)) {
+    return 1;
+  }
+  var num_floors = $feature.Height_Feet / 12
+  if (num_floors < 1) {
+    return 1;
+  }
+  else {
+    return Round(num_floors, 0);
+  }
+}
+else {
+  return $feature.Floors
+}
